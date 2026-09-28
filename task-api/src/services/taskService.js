@@ -9,7 +9,8 @@ const findById = (id) => tasks.find((t) => t.id === id);
 const getByStatus = (status) => tasks.filter((t) => t.status.includes(status));
 
 const getPaginated = (page, limit) => {
-  const offset = page * limit;
+  
+  const offset = (page - 1) * limit;   // Pages are one-based so page 1 starts at index 0
   return tasks.slice(offset, offset + limit);
 };
 
@@ -66,7 +67,7 @@ const completeTask = (id) => {
 
   const updated = {
     ...task,
-    priority: 'medium',
+   // Completing a task should not change its existing priority
     status: 'done',
     completedAt: new Date().toISOString(),
   };
