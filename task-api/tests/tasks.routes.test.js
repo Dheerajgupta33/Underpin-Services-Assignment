@@ -148,3 +148,62 @@ test('GET /tasks/stats returns task counts', async () => {
     overdue: 0,
   });
 });
+
+test('PATCH /tasks/:id/assign assigns a task', async () => {
+  const task = taskService.create({
+    title: 'Assign me',
+  });
+
+  const response = await request(app)
+    .patch(`/tasks/${task.id}/assign`)
+    .send({ assignee: '  Asha  ' })
+    .expect(200);
+
+  expect(response.body.assignee).toBe('Asha');
+});
+
+test('PATCH /tasks/:id/assign allows reassignment', async () => {
+  const task = taskService.create({
+    title: 'Reassign me',
+  });
+
+  await request(app)
+    .patch(`/tasks/${task.id}/assign`)
+    .send({ assignee: 'Asha' })
+    .expect(200);
+
+  const response = await request(app)
+    .patch(`/tasks/${task.id}/assign`)
+    .send({ assignee: 'Ravi' })
+    .expect(200);
+
+  expect(response.body.assignee).toBe('Ravi');
+});
+
+test('PATCH /tasks/:id/assign rejects an empty assignee', async () => {
+  const task = taskService.create({
+    title: 'Assign me',
+  });
+
+  await request(app)
+    .patch(`/tasks/${task.id}/assign`)
+    .send({ assignee: '   ' })
+    .expect(400);
+});
+test('PATCH /tasks/:id/assign rejects a non-string assignee', async () => {
+  const task = taskService.create({
+    title: 'Assign me',
+  });
+
+  await request(app)
+    .patch(`/tasks/${task.id}/assign`)
+    .send({ assignee: 123 })
+    .expect(400);
+});
+
+test('PATCH /tasks/:id/assign returns 404 for a missing task', async () => {
+  await request(app)
+    .patch('/tasks/missing-id/assign')
+    .send({ assignee: 'Asha' })
+    .expect(404);
+});
